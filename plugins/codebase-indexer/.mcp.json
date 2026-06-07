@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "codebase-indexer": {
+      "cwd": ".",
+      "command": "node",
+      "args": ["./dist/mcp-server.cjs"],
+      "startup_timeout_sec": 30,
+      "tool_timeout_sec": 300
+    }
+  }
+}

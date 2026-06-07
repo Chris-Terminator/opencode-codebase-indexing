@@ -1,0 +1,16 @@
+node_modules/
+*.log
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.*
+.codex/codebase-indexer.json
+.security-scans/
+security-scans/
+tmp/
+temp/
+
