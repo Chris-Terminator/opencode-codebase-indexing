@@ -30,6 +30,8 @@ export const CodebaseIndexerPlugin: Plugin = async ({ worktree }) => {
   }
 }
 
+export const server = CodebaseIndexerPlugin
+
 function createTools(pluginWorktree: string): Record<string, ToolDefinition> {
   return {
     semantic_search: tool({
