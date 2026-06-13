@@ -21,4 +21,4 @@ Scope: Native OpenCode plugin adapter, indexing lifecycle, credential handling, 
 ## Verification
 
 - Configuration, path authorization, secret-file ignores, symlink containment, error sanitization, Qdrant filters, native tool registration, plugin lifecycle, and Tree-sitter packaging are covered by automated tests.
-- Release verification includes a clean production build, full test suite, npm tarball inspection, and built-entrypoint import smoke test.
+- Release verification includes a clean bundled production build, full test suite, npm tarball inspection, and built-entrypoint import smoke test.

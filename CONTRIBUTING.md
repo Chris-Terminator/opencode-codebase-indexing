@@ -16,6 +16,6 @@ npm run check
 npm pack --dry-run
 ```
 
-The build emits the native OpenCode plugin into `dist/src/plugin.js` and packages Tree-sitter WASM assets under `dist/tree-sitter`.
+The build emits the bundled native OpenCode plugin into `dist/plugin.js` and packages Tree-sitter WASM assets under `dist/tree-sitter`.
 
 Never commit global Codebase Indexer configuration, API keys, private security-scan artifacts, or indexed source data.
