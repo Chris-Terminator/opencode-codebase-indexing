@@ -8,7 +8,7 @@ const managers = new Map<string, CodeIndexManager>()
 export async function managerFor(workspace: string, start = true): Promise<CodeIndexManager> {
   let manager = managers.get(workspace)
   if (!manager) {
-    manager = new CodeIndexManager(workspace, path.join(os.homedir(), ".codex", "codebase-indexer", "cache"))
+    manager = new CodeIndexManager(workspace, path.join(os.homedir(), ".config", "opencode", "codebase-indexer", "cache"))
     managers.set(workspace, manager)
   }
   await manager.initialize(await loadIndexConfig(workspace))
@@ -23,11 +23,9 @@ export function disposeAll(): void {
   managers.clear()
 }
 
-export function retainManagers(workspaces: string[]): void {
-  const retained = new Set(workspaces.map((workspace) => workspace.toLowerCase()))
-  for (const [workspace, manager] of managers) {
-    if (retained.has(workspace.toLowerCase())) continue
-    manager.dispose()
-    managers.delete(workspace)
-  }
+export function disposeManager(workspace: string): void {
+  const manager = managers.get(workspace)
+  if (!manager) return
+  manager.dispose()
+  managers.delete(workspace)
 }

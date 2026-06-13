@@ -298,7 +298,9 @@ export class CodeIndexManager {
             });
             this.emitStart("background");
             // Fire and forget — indexing is a long-running background process
-            this._orchestrator?.startIndexing("background");
+            void this._orchestrator?.startIndexing("background").catch((err) => {
+                log.error("background indexing failed", { workspacePath: this.workspacePath, err });
+            });
         }
         return { requiresRestart };
     }

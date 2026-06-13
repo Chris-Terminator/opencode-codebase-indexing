@@ -23,12 +23,15 @@ type FileConfig = {
 }
 
 function globalConfigPath(): string {
-  return process.env.CODEBASE_INDEXER_GLOBAL_CONFIG ?? path.join(os.homedir(), ".codex", "codebase-indexer", "config.json")
+  return (
+    process.env.OPENCODE_CODEBASE_INDEXER_GLOBAL_CONFIG ??
+    path.join(os.homedir(), ".config", "opencode", "codebase-indexer", "config.json")
+  )
 }
 
 export async function loadIndexConfig(workspacePath: string): Promise<IndexingConfigInput> {
   const global = await readJson(globalConfigPath())
-  const project = await readJson(path.join(workspacePath, ".codex", "codebase-indexer.json"))
+  const project = await readJson(path.join(workspacePath, ".opencode", "codebase-indexer.json"))
   const config = { ...global, enabled: project.enabled === true }
   const provider = config.provider ?? "ollama"
   const qdrantUrl = validateServiceUrl(config.qdrant?.url ?? "http://localhost:6333", config.allowInsecureRemoteHttp)
@@ -57,12 +60,12 @@ export async function loadIndexConfig(workspacePath: string): Promise<IndexingCo
 }
 
 export async function isProjectEnrolled(workspacePath: string): Promise<boolean> {
-  return (await readJson(path.join(workspacePath, ".codex", "codebase-indexer.json"))).enabled === true
+  return (await readJson(path.join(workspacePath, ".opencode", "codebase-indexer.json"))).enabled === true
 }
 
 export async function getConfigWarnings(workspacePath: string): Promise<string[]> {
   const global = await readJson(globalConfigPath())
-  const project = await readJson(path.join(workspacePath, ".codex", "codebase-indexer.json"))
+  const project = await readJson(path.join(workspacePath, ".opencode", "codebase-indexer.json"))
   const warnings: string[] = []
   const unsupportedProjectKeys = Object.keys(project).filter((key) => key !== "enabled")
   if (unsupportedProjectKeys.length > 0) {

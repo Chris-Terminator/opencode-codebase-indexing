@@ -75,7 +75,7 @@ export class QdrantVectorStore implements IVectorStore {
         prefix: urlObj.pathname === "/" ? undefined : urlObj.pathname.replace(/\/+$/, ""),
         apiKey,
         headers: {
-          "User-Agent": "Kilo-Code",
+          "User-Agent": "OpenCode-Codebase-Indexer/0.1.0",
         },
       })
     } catch (urlError) {
@@ -85,7 +85,7 @@ export class QdrantVectorStore implements IVectorStore {
         url: parsedUrl,
         apiKey,
         headers: {
-          "User-Agent": "Kilo-Code",
+          "User-Agent": "OpenCode-Codebase-Indexer/0.1.0",
         },
       })
     }
@@ -100,7 +100,7 @@ export class QdrantVectorStore implements IVectorStore {
         modelId: "",
         dimension: vectorSize,
       } as EmbeddingProfile)
-    this.collectionName = `codex-ws-${hash.substring(0, 16)}`
+    this.collectionName = `opencode-ws-${hash.substring(0, 16)}`
   }
 
   /**

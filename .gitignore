@@ -8,9 +8,8 @@ node_modules/
 *.pfx
 credentials.json
 secrets.*
-.codex/codebase-indexer.json
+.opencode/codebase-indexer.json
 .security-scans/
 security-scans/
 tmp/
 temp/
-

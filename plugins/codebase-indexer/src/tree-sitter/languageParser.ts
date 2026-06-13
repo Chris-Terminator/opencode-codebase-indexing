@@ -56,7 +56,7 @@ function uniquePaths(paths: Array<string | undefined>): string[] {
 export function wasmDirectories(sourceDirectory?: string): string[] {
   const baseDir = sourceDirectory || __dirname
   const execDir = path.dirname(process.execPath)
-  const envDir = process.env.KILO_TREE_SITTER_WASM_DIR
+  const envDir = process.env.OPENCODE_CODEBASE_INDEXER_WASM_DIR
   const wasmPkg = resolveModulePath("tree-sitter-wasms/package.json")
   const wasmOutDir = wasmPkg ? path.join(path.dirname(wasmPkg), "out") : undefined
 

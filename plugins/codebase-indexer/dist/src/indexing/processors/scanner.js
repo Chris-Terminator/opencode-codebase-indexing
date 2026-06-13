@@ -11,6 +11,7 @@ import { QDRANT_CODE_BLOCK_NAMESPACE, MAX_FILE_SIZE_BYTES, BATCH_SEGMENT_THRESHO
 import { FileIgnore } from "../../file/ignore";
 import { Log } from "../../util/log";
 import { sanitizeErrorMessage } from "../shared/validation-helpers";
+import { isRealPathWithinWorkspace } from "../shared/path-security";
 const log = Log.create({ service: "indexing-scanner" });
 export class DirectoryScanner {
     embedder;
@@ -191,6 +192,10 @@ export class DirectoryScanner {
                 return;
             }
             try {
+                if (!(await isRealPathWithinWorkspace(filePath, scanWorkspace))) {
+                    skippedCount++;
+                    return;
+                }
                 // Check file size
                 const stats = await stat(filePath);
                 if (this._cancelled) {

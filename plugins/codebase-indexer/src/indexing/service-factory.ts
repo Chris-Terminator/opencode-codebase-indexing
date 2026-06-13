@@ -50,7 +50,7 @@ export class CodeIndexServiceFactory {
         config.modelDimension,
       )
     }
-    throw new Error(`Unsupported provider in Codex Codebase Indexer: ${config.embedderProvider}`)
+    throw new Error(`Unsupported provider in OpenCode Codebase Indexer: ${config.embedderProvider}`)
   }
 
   public async validateEmbedder(embedder: IEmbedder): Promise<{ valid: boolean; error?: string }> {

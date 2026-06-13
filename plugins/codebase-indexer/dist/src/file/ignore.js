@@ -43,6 +43,14 @@ export var FileIgnore;
         "**/*.log",
         "**/coverage/**",
         "**/.nyc_output/**",
+        "**/.env",
+        "**/.env.*",
+        "**/*.pem",
+        "**/*.key",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/credentials.json",
+        "**/secrets.*",
     ];
     FileIgnore.PATTERNS = [...files, ...folders];
     function match(filePath, opts) {
@@ -53,6 +61,8 @@ export var FileIgnore;
         }
         const parts = normalized.split("/");
         for (const part of parts) {
+            if (part.startsWith("."))
+                return true;
             if (folders.has(part))
                 return true;
         }

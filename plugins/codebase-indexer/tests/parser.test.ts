@@ -11,7 +11,7 @@ import {
 } from "../src/tree-sitter/languageParser.js"
 
 test("Tree-sitter extracts semantic TypeScript blocks", async () => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "codex-indexer-parser-"))
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-indexer-parser-"))
   const file = path.join(dir, "auth.ts")
   const content = `
 export async function authenticateUser(email: string, password: string) {

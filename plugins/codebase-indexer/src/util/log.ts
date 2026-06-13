@@ -14,7 +14,8 @@ type Entry = {
   }
 }
 
-const enabled = process.env.KILO_INDEXING_LOG === "1" || process.env.KILO_INDEXING_LOG === "true"
+const enabled =
+  process.env.OPENCODE_CODEBASE_INDEXER_LOG === "1" || process.env.OPENCODE_CODEBASE_INDEXER_LOG === "true"
 const sensitiveKey = /api[-_]?key|authorization|credential|password|secret|token/i
 
 function redact(value: unknown, key = ""): unknown {

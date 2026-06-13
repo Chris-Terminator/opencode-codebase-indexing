@@ -3,6 +3,7 @@ import { createHash } from "crypto";
 import * as path from "path";
 import { DEFAULT_MAX_SEARCH_RESULTS, DEFAULT_SEARCH_MIN_SCORE } from "../constants";
 import { Log } from "../../util/log";
+import { sanitizeErrorMessage } from "../shared/validation-helpers";
 const log = Log.create({ service: "qdrant-store" });
 const KEY = {
     complete: "indexing_complete",
@@ -62,7 +63,7 @@ export class QdrantVectorStore {
                 prefix: urlObj.pathname === "/" ? undefined : urlObj.pathname.replace(/\/+$/, ""),
                 apiKey,
                 headers: {
-                    "User-Agent": "Kilo-Code",
+                    "User-Agent": "OpenCode-Codebase-Indexer/0.1.0",
                 },
             });
         }
@@ -73,7 +74,7 @@ export class QdrantVectorStore {
                 url: parsedUrl,
                 apiKey,
                 headers: {
-                    "User-Agent": "Kilo-Code",
+                    "User-Agent": "OpenCode-Codebase-Indexer/0.1.0",
                 },
             });
         }
@@ -87,7 +88,7 @@ export class QdrantVectorStore {
                     modelId: "",
                     dimension: vectorSize,
                 };
-        this.collectionName = `codex-ws-${hash.substring(0, 16)}`;
+        this.collectionName = `opencode-ws-${hash.substring(0, 16)}`;
     }
     /**
      * Parses and normalizes Qdrant server URLs to handle various input formats
@@ -349,6 +350,18 @@ export class QdrantVectorStore {
                 });
             }
         }
+        try {
+            await this.client.createPayloadIndex(this.collectionName, {
+                field_name: "filePath",
+                field_schema: "keyword",
+            });
+        }
+        catch (indexError) {
+            const errorMessage = (indexError?.message || "").toLowerCase();
+            if (!errorMessage.includes("already exists")) {
+                log.warn(`Could not create payload index for filePath on ${this.collectionName}`);
+            }
+        }
         // Create indexes for pathSegments fields
         for (let i = 0; i <= 4; i++) {
             try {
@@ -495,22 +508,23 @@ export class QdrantVectorStore {
             }
             const workspaceRoot = this.workspacePath;
             // Build filters using pathSegments to match the indexed fields
-            const filters = filePaths.map((filePath) => {
+            const filters = filePaths.flatMap((filePath) => {
                 // IMPORTANT: Use the relative path to match what's stored in upsertPoints
                 // upsertPoints stores the relative filePath, not the absolute path
                 const relativePath = path.isAbsolute(filePath) ? path.relative(workspaceRoot, filePath) : filePath;
                 // Normalize the relative path
                 const normalizedRelativePath = path.normalize(relativePath);
-                // Split the path into segments like we do in upsertPoints
-                const segments = normalizedRelativePath.split(path.sep).filter(Boolean);
-                // Create a filter that matches all segments of the path
-                // This ensures we only delete points that match the exact file path
-                const mustConditions = segments.map((segment, index) => ({
-                    key: `pathSegments.${index}`,
-                    match: { value: segment },
-                }));
-                return { must: mustConditions };
+                if (!normalizedRelativePath ||
+                    normalizedRelativePath === "." ||
+                    path.isAbsolute(normalizedRelativePath) ||
+                    normalizedRelativePath === ".." ||
+                    normalizedRelativePath.startsWith(`..${path.sep}`)) {
+                    return [];
+                }
+                return [{ must: [{ key: "filePath", match: { value: normalizedRelativePath } }] }];
             });
+            if (filters.length === 0)
+                return;
             // Use 'should' to match any of the file paths (OR condition)
             const filter = filters.length === 1 ? filters[0] : { should: filters };
             await this.client.delete(this.collectionName, {
@@ -522,15 +536,11 @@ export class QdrantVectorStore {
             // Extract more detailed error information
             const errorMessage = error?.message || String(error);
             const errorStatus = error?.status || error?.response?.status || error?.statusCode;
-            const errorDetails = error?.response?.data || error?.data || "";
-            log.error(`Failed to delete points by file paths`, {
-                error: errorMessage,
+            log.error("Failed to delete points by file paths", {
+                error: sanitizeErrorMessage(errorMessage),
                 status: errorStatus,
-                details: errorDetails,
                 collection: this.collectionName,
                 fileCount: filePaths.length,
-                // Include first few file paths for debugging (avoid logging too many)
-                samplePaths: filePaths.slice(0, 3),
             });
             throw error;
         }

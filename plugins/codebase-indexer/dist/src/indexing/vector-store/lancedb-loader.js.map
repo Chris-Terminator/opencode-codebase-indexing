@@ -1,1 +1,0 @@
-{"version":3,"file":"lancedb-loader.js","sourceRoot":"","sources":["../../../../src/indexing/vector-store/lancedb-loader.ts"],"names":[],"mappings":"AAAA,MAAM,GAAG,GAAG,mBAAmB,CAAA;AAE/B,MAAM,UAAU,uBAAuB;IACrC,OAAO,OAAO,CAAC,GAAG,CAAC,GAAG,CAAC,IAAI,kBAAkB,CAAA;AAC/C,CAAC;AAED,MAAM,CAAC,KAAK,UAAU,WAAW;IAC/B,OAAO,MAAM,CAAC,uBAAuB,EAAE,CAAC,CAAA;AAC1C,CAAC"}

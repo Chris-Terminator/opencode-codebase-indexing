@@ -2,9 +2,9 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import { QdrantVectorStore } from "../src/indexing/vector-store/qdrant-client.js"
 
-test("prefixes project collections with codex-ws", () => {
+test("prefixes project collections with opencode-ws", () => {
   const store = new QdrantVectorStore("C:\\code\\example", "http://localhost:6333", 1536)
-  assert.match((store as unknown as { collectionName: string }).collectionName, /^codex-ws-[a-f0-9]{16}$/)
+  assert.match((store as unknown as { collectionName: string }).collectionName, /^opencode-ws-[a-f0-9]{16}$/)
 })
 
 test("deletes file points using an exact filePath filter", async () => {

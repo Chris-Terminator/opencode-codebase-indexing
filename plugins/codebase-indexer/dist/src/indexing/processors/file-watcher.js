@@ -11,6 +11,8 @@ import { generateNormalizedAbsolutePath, generateRelativeFilePath, generateRelat
 import { FileIgnore } from "../../file/ignore";
 import { Log } from "../../util/log";
 import { sanitizeErrorMessage } from "../shared/validation-helpers";
+import { isRealPathWithinWorkspace } from "../shared/path-security";
+import { loadIgnore } from "../shared/load-ignore";
 const log = Log.create({ service: "file-watcher" });
 /**
  * Implementation of the file watcher interface.
@@ -101,6 +103,8 @@ export class FileWatcher {
                 const relativeFilePath = generateRelativeIgnorePath(filePath, this.workspacePath);
                 if (!relativeFilePath)
                     return false;
+                if (this.isIgnoreRulesFile(relativeFilePath))
+                    return false;
                 if (FileIgnore.match(relativeFilePath))
                     return true;
                 return this.ignoreInstance?.ignores(relativeFilePath) ?? false;
@@ -152,12 +156,35 @@ export class FileWatcher {
      * Handles a file event from chokidar by accumulating it and scheduling batch processing.
      */
     handleFileEvent(filePath, type) {
+        const relativeFilePath = generateRelativeIgnorePath(filePath, this.workspacePath);
+        if (relativeFilePath && this.isIgnoreRulesFile(relativeFilePath)) {
+            void this.reloadIgnoreRules();
+            return;
+        }
         if (!this.shouldIndex(filePath))
             return;
         this.accumulatedEvents.set(filePath, { path: filePath, type });
         if (!this.collecting)
             return;
         this.scheduleBatchProcessing();
+    }
+    isIgnoreRulesFile(relativePath) {
+        const normalized = relativePath.replaceAll("\\", "/");
+        return normalized === ".gitignore" || normalized === ".kilocodeignore";
+    }
+    async reloadIgnoreRules() {
+        this.ignoreInstance = await loadIgnore(this.workspacePath);
+        if (!this.vectorStore)
+            return;
+        const newlyIgnored = Object.keys(this.cacheManager.getAllHashes()).filter((filePath) => {
+            const relative = generateRelativeIgnorePath(filePath, this.workspacePath);
+            return !!relative && (FileIgnore.match(relative) || !!this.ignoreInstance?.ignores(relative));
+        });
+        if (newlyIgnored.length === 0)
+            return;
+        await this.vectorStore.deletePointsByMultipleFilePaths(newlyIgnored);
+        for (const filePath of newlyIgnored)
+            this.cacheManager.deleteHash(filePath);
     }
     /**
      * Schedules batch processing with debounce.
@@ -494,6 +521,13 @@ export class FileWatcher {
                     path: filePath,
                     status: "skipped",
                     reason: "File path is outside workspace",
+                };
+            }
+            if (!(await isRealPathWithinWorkspace(filePath, this.workspacePath))) {
+                return {
+                    path: filePath,
+                    status: "skipped",
+                    reason: "Real file path is outside workspace",
                 };
             }
             if (FileIgnore.match(relativeFilePath)) {

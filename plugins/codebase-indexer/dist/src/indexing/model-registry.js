@@ -40,6 +40,7 @@ const profiles = {
         "openai/text-embedding-3-small": { dimension: 1536, scoreThreshold: 0.4 },
         "openai/text-embedding-3-large": { dimension: 3072, scoreThreshold: 0.4 },
         "google/gemini-embedding-2-preview": { dimension: 3072, scoreThreshold: 0.35 },
+        "qwen/qwen3-embedding-8b": { dimension: 4096, scoreThreshold: 0.4 },
     },
     "openai-compatible": {},
     "vercel-ai-gateway": {

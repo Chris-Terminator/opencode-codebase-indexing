@@ -1,14 +1,26 @@
 {
-  "name": "codex-codebase-indexer",
+  "name": "opencode-codebase-indexer",
   "version": "0.1.0",
+  "description": "Qdrant-backed semantic code search and automatic indexing for OpenCode.",
   "type": "module",
-  "private": true,
+  "main": "./dist/src/plugin.js",
+  "exports": {
+    ".": "./dist/src/plugin.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.kilocode",
+    "THIRD_PARTY_NOTICES.md"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json --noEmit && esbuild src/mcp-server.ts --bundle --platform=node --format=cjs --outfile=dist/mcp-server.cjs && node scripts/copy-tree-sitter-wasms.mjs",
+    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.json && node scripts/copy-tree-sitter-wasms.mjs",
     "test": "bun test",
-    "check": "npm run build && npm test"
+    "check": "npm run build && npm test",
+    "prepack": "npm run build"
   },
   "dependencies": {
+    "@opencode-ai/plugin": "1.17.4",
     "@qdrant/js-client-rest": "1.17.0",
     "async-mutex": "0.5.0",
     "chokidar": "4.0.3",
@@ -23,8 +35,18 @@
   },
   "devDependencies": {
     "@types/node": "24.12.4",
-    "esbuild": "0.25.12",
     "typescript": "5.8.2"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22",
+    "opencode": ">=1.17.4"
+  },
+  "license": "MIT",
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "semantic-search",
+    "code-indexing",
+    "qdrant"
+  ]
 }
