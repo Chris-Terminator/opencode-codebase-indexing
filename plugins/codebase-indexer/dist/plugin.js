@@ -44754,8 +44754,8 @@ var ClientVersion = {
       return true;
     try {
       const client = ClientVersion.parseVersion(clientVersion);
-      const server2 = ClientVersion.parseVersion(serverVersion);
-      return client.major === server2.major && Math.abs(client.minor - server2.minor) <= 1;
+      const server = ClientVersion.parseVersion(serverVersion);
+      return client.major === server.major && Math.abs(client.minor - server.minor) <= 1;
     } catch (error45) {
       console.debug(`Unable to compare versions: ${error45}`);
       return false;
@@ -58517,7 +58517,11 @@ var CodebaseIndexerPlugin = async ({ worktree }) => {
     }
   };
 };
-var server = CodebaseIndexerPlugin;
+var plugin = {
+  id: "opencode-codebase-indexer",
+  server: CodebaseIndexerPlugin
+};
+var plugin_default = plugin;
 function createTools(pluginWorktree) {
   return {
     semantic_search: tool({
@@ -58623,8 +58627,7 @@ function safePrefix(root, input) {
   return path17.normalize(relative4);
 }
 export {
-  CodebaseIndexerPlugin,
-  server
+  plugin_default as default
 };
 /*! Bundled license information:
 

@@ -3,7 +3,9 @@ import assert from "node:assert/strict"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { CodebaseIndexerPlugin } from "../src/plugin.js"
+import plugin from "../src/plugin.js"
+
+const CodebaseIndexerPlugin = plugin.server
 
 async function enrolledProject() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-indexer-plugin-"))

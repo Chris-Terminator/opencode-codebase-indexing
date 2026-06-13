@@ -1,5 +1,5 @@
 import path from "node:path"
-import type { Plugin, ToolDefinition } from "@opencode-ai/plugin"
+import type { Plugin, PluginModule, ToolDefinition } from "@opencode-ai/plugin"
 import { tool } from "@opencode-ai/plugin"
 import { getConfigWarnings } from "./config.js"
 import { managerFor, disposeManager } from "./runtime.js"
@@ -15,7 +15,7 @@ const SYSTEM_GUIDANCE = [
   "Only call reindex_codebase after the user explicitly requests a rebuild.",
 ].join(" ")
 
-export const CodebaseIndexerPlugin: Plugin = async ({ worktree }) => {
+const CodebaseIndexerPlugin: Plugin = async ({ worktree }) => {
   const root = await authorizedRoot(worktree).catch(() => undefined)
   if (root) void managerFor(root, true).catch(() => undefined)
 
@@ -30,7 +30,12 @@ export const CodebaseIndexerPlugin: Plugin = async ({ worktree }) => {
   }
 }
 
-export const server = CodebaseIndexerPlugin
+const plugin: PluginModule = {
+  id: "opencode-codebase-indexer",
+  server: CodebaseIndexerPlugin,
+}
+
+export default plugin
 
 function createTools(pluginWorktree: string): Record<string, ToolDefinition> {
   return {

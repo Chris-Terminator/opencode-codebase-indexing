@@ -1,9 +1,10 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 
-test("package entry exports the OpenCode server plugin", async () => {
+test("package entry default-exports one OpenCode plugin module", async () => {
   const entry = await import("../dist/plugin.js")
-  assert.deepEqual(Object.keys(entry).sort(), ["CodebaseIndexerPlugin", "server"])
-  assert.equal(typeof entry.CodebaseIndexerPlugin, "function")
-  assert.equal(entry.server, entry.CodebaseIndexerPlugin)
+  assert.deepEqual(Object.keys(entry), ["default"])
+  assert.equal(entry.default.id, "opencode-codebase-indexer")
+  assert.equal(typeof entry.default.server, "function")
+  assert.equal("tui" in entry.default, false)
 })
