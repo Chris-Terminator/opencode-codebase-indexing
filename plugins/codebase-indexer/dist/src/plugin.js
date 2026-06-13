@@ -25,11 +25,7 @@ export const CodebaseIndexerPlugin = async ({ worktree }) => {
         },
     };
 };
-export default {
-    id: "opencode-codebase-indexer",
-    server: CodebaseIndexerPlugin,
-};
-export function createTools(pluginWorktree) {
+function createTools(pluginWorktree) {
     return {
         semantic_search: tool({
             description: "Semantically search the active indexed codebase.",
