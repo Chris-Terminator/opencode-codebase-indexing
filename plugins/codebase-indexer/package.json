@@ -1,6 +1,6 @@
 {
   "name": "opencode-codebase-indexer",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Qdrant-backed semantic code search and automatic indexing for OpenCode.",
   "type": "module",
   "main": "./dist/plugin.js",

@@ -15,12 +15,12 @@ const SYSTEM_GUIDANCE = [
   "Only call reindex_codebase after the user explicitly requests a rebuild.",
 ].join(" ")
 
-const CodebaseIndexerPlugin: Plugin = async ({ worktree }) => {
-  const root = await authorizedRoot(worktree).catch(() => undefined)
+const CodebaseIndexerPlugin: Plugin = async ({ directory }) => {
+  const root = await authorizedRoot(directory).catch(() => undefined)
   if (root) void managerFor(root, true).catch(() => undefined)
 
   return {
-    tool: createTools(worktree),
+    tool: createTools(directory),
     "experimental.chat.system.transform": async (_input, output) => {
       output.system.push(SYSTEM_GUIDANCE)
     },
@@ -37,7 +37,7 @@ const plugin: PluginModule = {
 
 export default plugin
 
-function createTools(pluginWorktree: string): Record<string, ToolDefinition> {
+function createTools(pluginDirectory: string): Record<string, ToolDefinition> {
   return {
     semantic_search: tool({
       description: "Semantically search the active indexed codebase.",
@@ -48,21 +48,21 @@ function createTools(pluginWorktree: string): Record<string, ToolDefinition> {
         minScore: tool.schema.number().min(0).max(1).optional(),
       },
       async execute(args, context) {
-        return executeTool("semantic_search", args, context, pluginWorktree)
+        return executeTool("semantic_search", args, context, pluginDirectory)
       },
     }),
     index_status: tool({
       description: "Return indexing status for the active project.",
       args: {},
       async execute(args, context) {
-        return executeTool("index_status", args, context, pluginWorktree)
+        return executeTool("index_status", args, context, pluginDirectory)
       },
     }),
     index_codebase: tool({
       description: "Start or resume indexing and watching for the active enrolled project.",
       args: {},
       async execute(args, context) {
-        return executeTool("index_codebase", args, context, pluginWorktree)
+        return executeTool("index_codebase", args, context, pluginDirectory)
       },
     }),
     reindex_codebase: tool({
@@ -71,21 +71,21 @@ function createTools(pluginWorktree: string): Record<string, ToolDefinition> {
         confirm: tool.schema.boolean().describe("Must be true to confirm the destructive rebuild."),
       },
       async execute(args, context) {
-        return executeTool("reindex_codebase", args, context, pluginWorktree)
+        return executeTool("reindex_codebase", args, context, pluginDirectory)
       },
     }),
     stop_indexing: tool({
       description: "Stop indexing and file watching for the active project.",
       args: {},
       async execute(args, context) {
-        return executeTool("stop_indexing", args, context, pluginWorktree)
+        return executeTool("stop_indexing", args, context, pluginDirectory)
       },
     }),
     index_doctor: tool({
       description: "Validate active-project enrollment and indexing configuration.",
       args: {},
       async execute(args, context) {
-        return executeTool("index_doctor", args, context, pluginWorktree)
+        return executeTool("index_doctor", args, context, pluginDirectory)
       },
     }),
   }
@@ -95,10 +95,10 @@ async function executeTool(
   name: string,
   args: Record<string, any>,
   context: ToolContext,
-  pluginWorktree: string,
+  pluginDirectory: string,
 ): Promise<string> {
   try {
-    const root = await authorizedRoot(context.worktree, pluginWorktree)
+    const root = await authorizedRoot(context.directory, pluginDirectory)
     const manager = await managerFor(root, name !== "index_status" && name !== "index_doctor")
     let value: unknown
 
@@ -133,9 +133,9 @@ async function executeTool(
   }
 }
 
-async function authorizedRoot(toolWorktree: string, pluginWorktree?: string): Promise<string> {
-  const roots = pluginWorktree ? [pluginWorktree] : [toolWorktree]
-  return resolveWorkspace(toolWorktree, roots)
+async function authorizedRoot(toolDirectory: string, pluginDirectory?: string): Promise<string> {
+  const roots = pluginDirectory ? [pluginDirectory] : [toolDirectory]
+  return resolveWorkspace(toolDirectory, roots)
 }
 
 function safeStatus<T extends { message?: unknown }>(status: T): T {

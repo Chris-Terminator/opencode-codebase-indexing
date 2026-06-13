@@ -34,7 +34,7 @@ test("requires explicit paths to exactly match an active root", async () => {
   await enroll(root)
   await fs.mkdir(child)
   await enroll(child)
-  await assert.rejects(resolveWorkspace(child, [root]), /exactly match/)
+  await assert.rejects(resolveWorkspace(child, [root]), /directory must exactly match/)
   assert.equal(await resolveWorkspace(root, [root]), path.resolve(root))
 })
 

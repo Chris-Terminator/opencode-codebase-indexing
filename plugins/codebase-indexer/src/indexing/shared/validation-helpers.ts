@@ -33,7 +33,7 @@ export function sanitizeErrorMessage(errorMessage: string): string {
   // Replace file paths (Unix and Windows style)
   // Matches paths like /Users/username/path, C:\Users\path, ./relative/path, ../relative/path
   sanitized = sanitized.replace(
-    /(?:\/[\w\-\.]+)+(?:\/[\w\-\.\s]*)*|(?:[A-Za-z]:\\[\w\-\.\\]+)|(?:\.{1,2}\/[\w\-\.\/]+)/g,
+    /(?<![\w.-])(?:\/[\w\-\.]+)+(?:\/[\w\-\.\s]*)*|(?:[A-Za-z]:\\[\w\-\.\\]+)|(?:\.{1,2}\/[\w\-\.\/]+)/g,
     "[REDACTED_PATH]",
   )
 
