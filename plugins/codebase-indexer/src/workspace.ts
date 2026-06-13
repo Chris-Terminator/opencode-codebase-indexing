@@ -11,7 +11,7 @@ export async function resolveWorkspace(explicit?: unknown, roots: string[] = [])
   }
 
   if (normalizedRoots.length > 0 && !normalizedRoots.some((root) => samePath(root, requested))) {
-    throw new Error("The tool worktree must exactly match the active OpenCode project root.")
+    throw new Error("The tool directory must exactly match the active OpenCode project root.")
   }
 
   const stat = await fs.stat(requested).catch(() => undefined)

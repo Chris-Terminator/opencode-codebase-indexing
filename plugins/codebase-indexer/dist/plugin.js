@@ -42904,7 +42904,7 @@ function sanitizeErrorMessage(errorMessage) {
   sanitized = sanitized.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[REDACTED_IP]");
   sanitized = sanitized.replace(/"[^"]*(?:\/|\\)[^"]*"/g, '"[REDACTED_PATH]"');
   sanitized = sanitized.replace(
-    /(?:\/[\w\-\.]+)+(?:\/[\w\-\.\s]*)*|(?:[A-Za-z]:\\[\w\-\.\\]+)|(?:\.{1,2}\/[\w\-\.\/]+)/g,
+    /(?<![\w.-])(?:\/[\w\-\.]+)+(?:\/[\w\-\.\s]*)*|(?:[A-Za-z]:\\[\w\-\.\\]+)|(?:\.{1,2}\/[\w\-\.\/]+)/g,
     "[REDACTED_PATH]"
   );
   sanitized = sanitized.replace(/(?<!REDACTED_URL\]):(\d{2,5})\b/g, ":[REDACTED_PORT]");
@@ -44754,8 +44754,8 @@ var ClientVersion = {
       return true;
     try {
       const client = ClientVersion.parseVersion(clientVersion);
-      const server2 = ClientVersion.parseVersion(serverVersion);
-      return client.major === server2.major && Math.abs(client.minor - server2.minor) <= 1;
+      const server = ClientVersion.parseVersion(serverVersion);
+      return client.major === server.major && Math.abs(client.minor - server.minor) <= 1;
     } catch (error45) {
       console.debug(`Unable to compare versions: ${error45}`);
       return false;
@@ -58469,7 +58469,7 @@ async function resolveWorkspace(explicit, roots = []) {
     throw new Error("No active OpenCode project root is available.");
   }
   if (normalizedRoots.length > 0 && !normalizedRoots.some((root) => samePath(root, requested))) {
-    throw new Error("The tool worktree must exactly match the active OpenCode project root.");
+    throw new Error("The tool directory must exactly match the active OpenCode project root.");
   }
   const stat6 = await fs7.stat(requested).catch(() => void 0);
   if (!stat6?.isDirectory()) throw new Error(`Workspace does not exist or is not a directory: ${requested}`);
@@ -58504,11 +58504,11 @@ var SYSTEM_GUIDANCE = [
   "Use index_status before diagnosing missing semantic results.",
   "Only call reindex_codebase after the user explicitly requests a rebuild."
 ].join(" ");
-var CodebaseIndexerPlugin = async ({ worktree }) => {
-  const root = await authorizedRoot(worktree).catch(() => void 0);
+var CodebaseIndexerPlugin = async ({ directory }) => {
+  const root = await authorizedRoot(directory).catch(() => void 0);
   if (root) void managerFor(root, true).catch(() => void 0);
   return {
-    tool: createTools(worktree),
+    tool: createTools(directory),
     "experimental.chat.system.transform": async (_input, output) => {
       output.system.push(SYSTEM_GUIDANCE);
     },
@@ -58517,8 +58517,12 @@ var CodebaseIndexerPlugin = async ({ worktree }) => {
     }
   };
 };
-var server = CodebaseIndexerPlugin;
-function createTools(pluginWorktree) {
+var plugin = {
+  id: "opencode-codebase-indexer",
+  server: CodebaseIndexerPlugin
+};
+var plugin_default = plugin;
+function createTools(pluginDirectory) {
   return {
     semantic_search: tool({
       description: "Semantically search the active indexed codebase.",
@@ -58529,21 +58533,21 @@ function createTools(pluginWorktree) {
         minScore: tool.schema.number().min(0).max(1).optional()
       },
       async execute(args2, context) {
-        return executeTool("semantic_search", args2, context, pluginWorktree);
+        return executeTool("semantic_search", args2, context, pluginDirectory);
       }
     }),
     index_status: tool({
       description: "Return indexing status for the active project.",
       args: {},
       async execute(args2, context) {
-        return executeTool("index_status", args2, context, pluginWorktree);
+        return executeTool("index_status", args2, context, pluginDirectory);
       }
     }),
     index_codebase: tool({
       description: "Start or resume indexing and watching for the active enrolled project.",
       args: {},
       async execute(args2, context) {
-        return executeTool("index_codebase", args2, context, pluginWorktree);
+        return executeTool("index_codebase", args2, context, pluginDirectory);
       }
     }),
     reindex_codebase: tool({
@@ -58552,28 +58556,28 @@ function createTools(pluginWorktree) {
         confirm: tool.schema.boolean().describe("Must be true to confirm the destructive rebuild.")
       },
       async execute(args2, context) {
-        return executeTool("reindex_codebase", args2, context, pluginWorktree);
+        return executeTool("reindex_codebase", args2, context, pluginDirectory);
       }
     }),
     stop_indexing: tool({
       description: "Stop indexing and file watching for the active project.",
       args: {},
       async execute(args2, context) {
-        return executeTool("stop_indexing", args2, context, pluginWorktree);
+        return executeTool("stop_indexing", args2, context, pluginDirectory);
       }
     }),
     index_doctor: tool({
       description: "Validate active-project enrollment and indexing configuration.",
       args: {},
       async execute(args2, context) {
-        return executeTool("index_doctor", args2, context, pluginWorktree);
+        return executeTool("index_doctor", args2, context, pluginDirectory);
       }
     })
   };
 }
-async function executeTool(name2, args2, context, pluginWorktree) {
+async function executeTool(name2, args2, context, pluginDirectory) {
   try {
-    const root = await authorizedRoot(context.worktree, pluginWorktree);
+    const root = await authorizedRoot(context.directory, pluginDirectory);
     const manager = await managerFor(root, name2 !== "index_status" && name2 !== "index_doctor");
     let value;
     if (name2 === "semantic_search") {
@@ -58603,9 +58607,9 @@ async function executeTool(name2, args2, context, pluginWorktree) {
     throw new Error(sanitizeErrorMessage(error45 instanceof Error ? error45.message : String(error45)));
   }
 }
-async function authorizedRoot(toolWorktree, pluginWorktree) {
-  const roots = pluginWorktree ? [pluginWorktree] : [toolWorktree];
-  return resolveWorkspace(toolWorktree, roots);
+async function authorizedRoot(toolDirectory, pluginDirectory) {
+  const roots = pluginDirectory ? [pluginDirectory] : [toolDirectory];
+  return resolveWorkspace(toolDirectory, roots);
 }
 function safeStatus(status) {
   return {
@@ -58623,8 +58627,7 @@ function safePrefix(root, input) {
   return path17.normalize(relative4);
 }
 export {
-  CodebaseIndexerPlugin,
-  server
+  plugin_default as default
 };
 /*! Bundled license information:
 

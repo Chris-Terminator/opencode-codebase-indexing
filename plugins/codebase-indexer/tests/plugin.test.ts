@@ -3,7 +3,9 @@ import assert from "node:assert/strict"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { CodebaseIndexerPlugin } from "../src/plugin.js"
+import plugin from "../src/plugin.js"
+
+const CodebaseIndexerPlugin = plugin.server
 
 async function enrolledProject() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-indexer-plugin-"))
@@ -18,7 +20,7 @@ async function enrolledProject() {
 
 function pluginInput(root: string) {
   return {
-    worktree: root,
+    worktree: path.dirname(root),
     directory: root,
     project: {},
     client: {},
@@ -30,7 +32,7 @@ function pluginInput(root: string) {
 
 function toolContext(root: string) {
   return {
-    worktree: root,
+    worktree: path.dirname(root),
     directory: root,
     sessionID: "session",
     messageID: "message",
@@ -61,7 +63,7 @@ test("registers all native OpenCode tools and semantic-search guidance", async (
   await hooks.dispose?.()
 })
 
-test("executes status, doctor, start, and stop tools for the active worktree", async () => {
+test("executes status, doctor, start, and stop tools for the active directory", async () => {
   const root = await enrolledProject()
   const hooks = await CodebaseIndexerPlugin(pluginInput(root))
   const tools = hooks.tool!
@@ -77,11 +79,12 @@ test("executes status, doctor, start, and stop tools for the active worktree", a
   await hooks.dispose?.()
 })
 
-test("rejects tool calls from a different or linked worktree", async () => {
+test("uses the active directory when worktree differs and rejects other directories", async () => {
   const root = await enrolledProject()
   const other = await enrolledProject()
   const hooks = await CodebaseIndexerPlugin(pluginInput(root))
 
+  assert.match((await hooks.tool!.index_status!.execute({}, toolContext(root))) as string, /"workspacePath"/)
   await assert.rejects(hooks.tool!.index_status!.execute({}, toolContext(other)), /exactly match/)
 
   await fs.writeFile(path.join(root, ".git"), "gitdir: elsewhere")
